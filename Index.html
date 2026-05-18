@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>智能叫号系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%);
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: #1e2b3c;
+            padding: 24px 20px 20px;
+            color: white;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .header h1 span {
+            background: #ff8c42;
+            font-size: 1.3rem;
+            padding: 0 12px;
+            border-radius: 60px;
+            color: #1e2b3c;
+        }
+        .sub {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 6px;
+        }
+        .current-area {
+            background: #ffffff;
+            margin: 20px 16px 16px;
+            border-radius: 40px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            padding: 16px 12px;
+            text-align: center;
+        }
+        .label-current {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #5b7c99;
+            letter-spacing: 2px;
+        }
+        .number-big {
+            font-size: 5.5rem;
+            font-weight: 800;
+            color: #1e2b3c;
+            line-height: 1.2;
+            margin: 8px 0;
+            font-family: monospace;
+        }
+        .queues-container {
+            display: flex;
+            gap: 12px;
+            margin: 0 16px 16px;
+        }
+        .queue-card {
+            flex: 1;
+            background: #f5f9ff;
+            border-radius: 28px;
+            padding: 12px 10px;
+            text-align: center;
+        }
+        .queue-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #5b7c99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .queue-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e2b3c;
+            margin-top: 6px;
+        }
+        .queue-list {
+            font-size: 0.7rem;
+            color: #7c9ab3;
+            margin-top: 6px;
+            white-space: nowrap;
+            overflow-x: auto;
+            padding: 4px 0;
+        }
+        .miss-card {
+            background: #fff5eb;
+            border: 1px solid #ffe0bc;
+        }
+        .miss-card .queue-title {
+            color: #e67e22;
+        }
+        .action-buttons {
+            padding: 8px 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .primary-btn {
+            background: #ff8c42;
+            border: none;
+            width: 100%;
+            padding: 16px 0;
+            border-radius: 50px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 14px rgba(255, 140, 66, 0.3);
+            cursor: pointer;
+            transition: 0.08s linear;
+        }
+        .primary-btn:active {
+            transform: scale(0.97);
+            background: #e6762e;
+        }
+        .secondary-group {
+            display: flex;
+            gap: 12px;
+        }
+        .sec-btn {
+            background: #eef2f8;
+            border: none;
+            flex: 1;
+            padding: 12px 0;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2c4e6e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .sec-btn:active {
+            background: #dce3ec;
+            transform: scale(0.96);
+        }
+        .history-panel {
+            background: #fefcf8;
+            margin: 0 16px 20px;
+            border-radius: 28px;
+            padding: 12px 14px;
+        }
+        .history-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #aa7a4a;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .history-item {
+            background: #f0e8dd;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #654321;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .history-item:active {
+            background: #e0d5c5;
+            transform: scale(0.96);
+        }
+        .recall-icon {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+        .empty-history {
+            color: #b99e7c;
+            font-size: 0.8rem;
+            padding: 6px 0;
+        }
+        .voice-tip {
+            text-align: center;
+            font-size: 0.65rem;
+            color: #8499ae;
+            margin-bottom: 18px;
+            padding: 0 10px;
+        }
+        .activate-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+            border-radius: 50px;
+            width: 100%;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            cursor: pointer;
+            border: none;
+        }
+        .activate-btn:active {
+            transform: scale(0.97);
+        }
+        .status-badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        @media (max-width: 450px) {
+            .number-big { font-size: 4.2rem; }
+            .queue-number { font-size: 1.4rem; }
+            .primary-btn { font-size: 1.2rem; padding: 14px 0; }
+        }
+        button { background: none; border: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📢 智能叫号 <span>Pro</span></h1>
+        <div class="sub">过号可补 · 历史点号重叫</div>
+    </div>
+
+    <div class="current-area">
+        <div class="label-current">当前叫号</div>
+        <div class="number-big" id="currentNumberDisplay">--</div>
+        <div id="voiceStatus" class="status-badge">⚙️ 语音待激活</div>
+    </div>
+
+    <div class="queues-container">
+        <div class="queue-card">
+            <div class="queue-title">⏳ 等待队列</div>
+            <div class="queue-number" id="nextNumberShow">--</div>
+            <div class="queue-list" id="nextHint">下一位</div>
+        </div>
+        <div class="queue-card miss-card">
+            <div class="queue-title">⚠️ 过号队列</div>
+            <div class="queue-number" id="missCount">0</div>
+            <div class="queue-list" id="missListHint">暂无过号</div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="activate-btn" id="activateSpeechBtn">🔊 第一步：点击激活语音</button>
+        <button class="primary-btn" id="callNormalBtn">🎤 叫号 · 下一位</button>
+        <div class="secondary-group">
+            <button class="sec-btn" id="callMissBtn">⏪ 优先叫过号</button>
+            <button class="sec-btn" id="repeatBtn">🔁 重复叫号</button>
+        </div>
+        <div class="secondary-group">
+            <button class="sec-btn" id="resetBtn">🔄 重置系统</button>
+            <button class="sec-btn" id="clearHistoryBtn">🧹 清空记录</button>
+        </div>
+    </div>
+
+    <div class="history-panel">
+        <div class="history-title">
+            📜 叫号历史（点击号码重叫）
+            <span style="font-size:0.6rem;">过号可点</span>
+        </div>
+        <div class="history-list" id="historyList">
+            <div class="empty-history">暂无叫号记录</div>
+        </div>
+    </div>
+    <div class="voice-tip">
+        🔊 点击绿色按钮激活 → 再点击叫号
+    </div>
+</div>
+
+<script>
+    (function() {
+        let nextNormalNumber = 1;
+        let currentNumber = null;
+        let missedNumbers = [];
+        let callHistory = [];
+        let speechActivated = false;
+        
+        const currentNumberDisplay = document.getElementById('currentNumberDisplay');
+        const nextNumberShowSpan = document.getElementById('nextNumberShow');
+        const missCountSpan = document.getElementById('missCount');
+        const missListHint = document.getElementById('missListHint');
+        const historyListDiv = document.getElementById('historyList');
+        const voiceStatusSpan = document.getElementById('voiceStatus');
+        
+        const callNormalBtn = document.getElementById('callNormalBtn');
+        const callMissBtn = document.getElementById('callMissBtn');
+        const repeatBtn = document.getElementById('repeatBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const activateSpeechBtn = document.getElementById('activateSpeechBtn');
+        
+        let speechSynth = window.speechSynthesis;
+        
+        function showMessage(msg, isError) {
+            voiceStatusSpan.textContent = msg;
+            voiceStatusSpan.style.background = isError ? '#ffebee' : '#e8f5e9';
+            voiceStatusSpan.style.color = isError ? '#c62828' : '#2e7d32';
+            setTimeout(() => {
+                if (voiceStatusSpan.textContent === msg && speechActivated) {
+                    voiceStatusSpan.textContent = '🔊 语音已激活';
+                }
+            }, 2000);
+        }
+        
+        function speakNumber(number, isMissRecall) {
+            if (!number) return;
+            if (!speechActivated) {
+                showMessage('⚠️ 请先点击绿色激活语音', true);
+                return;
+            }
+            if (!window.speechSynthesis) {
+                showMessage('❌ 浏览器不支持语音', true);
+                return;
+            }
+            try {
+                if (speechSynth) speechSynth.cancel();
+                const suffix = isMissRecall ? "，过号请尽快办理" : "，请到窗口办理";
+                const utterance = new SpeechSynthesisUtterance(`${number}号${suffix}`);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.9;
+                utterance.onstart = () => showMessage(`🔊 播报: ${number}号`);
+                utterance.onend = () => showMessage(`✅ 播报完成`);
+                utterance.onerror = () => showMessage(`⚠️ 播报失败`, true);
+                if (speechSynth.getVoices().length === 0) {
+                    speechSynth.addEventListener('voiceschanged', function onVoices() {
+                        speechSynth.removeEventListener('voiceschanged', onVoices);
+                        speechSynth.speak(utterance);
+                    });
+                } else {
+                    speechSynth.speak(utterance);
+                }
+            } catch(e) {
+                showMessage(`❌ 异常`, true);
+            }
+        }
+        
+        function activateSpeech() {
+            if (!window.speechSynthesis) {
+                showMessage('❌ 浏览器不支持', true);
+                return;
+            }
+            try {
+                if (speechSynth) speechSynth.cancel();
+                const testMsg = new SpeechSynthesisUtterance(' ');
+                testMsg.volume = 0;
+                testMsg.onend = () => {
+                    speechActivated = true;
+                    activateSpeechBtn.textContent = '✅ 语音已激活';
+                    activateSpeechBtn.style.background = '#2e7d32';
+                    voiceStatusSpan.textContent = '🔊 语音已激活';
+                    setTimeout(() => { activateSpeechBtn.style.display = 'none'; }, 1500);
+                };
+                speechSynth.speak(testMsg);
+                setTimeout(() => {
+                    if (!speechActivated) {
+                        speechActivated = true;
+                        activateSpeechBtn.style.display = 'none';
+                        voiceStatusSpan.textContent = '🔊 语音已激活';
+                    }
+                }, 300);
+            } catch(e) {
+                speechActivated = true;
+                activateSpeechBtn.style.display = 'none';
+                voiceStatusSpan.textContent = '🔊 语音已激活';
+            }
+        }
+        
+        function addToHistory(number, type) {
+            callHistory.push({ number, type });
+            if (callHistory.length > 30) callHistory.shift();
+            renderHistory();
+        }
+        
+        function updateUI() {
+            currentNumberDisplay.innerText = currentNumber !== null ? currentNumber : '--';
+            nextNumberShowSpan.innerText = nextNormalNumber;
+            missCountSpan.innerText = missedNumbers.length;
+            missListHint.innerText = missedNumbers.length ? '过号: ' + missedNumbers.join(', ') : '暂无过号';
+            renderHistory();
+        }
+        
+        function callNextNormal() {
+            if (currentNumber !== null && !missedNumbers.includes(currentNumber)) {
+                missedNumbers.push(currentNumber);
+            }
+            const newNumber = nextNormalNumber++;
+            currentNumber = newNumber;
+            addToHistory(newNumber, 'normal');
+            updateUI();
+            speakNumber(newNumber, false);
+        }
+        
+        function callMissedFirst() {
+            if (missedNumbers.length === 0) {
+                showMessage('⚠️ 没有过号', true);
+                return;
+            }
+            const missedNumber = missedNumbers.shift();
+            if (currentNumber !== null && !missedNumbers.includes(currentNumber)) {
+                missedNumbers.push(currentNumber);
+            }
+            currentNumber = missedNumber;
+            addToHistory(missedNumber, 'recall');
+            updateUI();
+            speakNumber(missedNumber, true);
+        }
+        
+        function repeatCurrent() {
+            if (currentNumber === null) {
+                showMessage('⚠️ 暂无叫号', true);
+                return;
+            }
+            speakNumber(currentNumber, missedNumbers.includes(currentNumber));
+        }
+        
+        function resetSystem() {
+            nextNormalNumber = 1;
+            currentNumber = null;
+            missedNumbers = [];
+            updateUI();
+            showMessage('🔄 系统已重置');
+            if (speechActivated && speechSynth) {
+                const msg = new SpeechSynthesisUtterance('系统已重置');
+                msg.lang = 'zh-CN';
+                speechSynth.speak(msg);
+            }
+        }
+        
+        function clearHistoryOnly() {
+            callHistory = [];
+            renderHistory();
+            showMessage('🧹 历史已清空');
+        }
+        
+        function renderHistory() {
+            historyListDiv.innerHTML = '';
+            if (callHistory.length === 0) {
+                historyListDiv.innerHTML = '<div class="empty-history">暂无叫号记录</div>';
+                return;
+            }
+            [...callHistory].reverse().slice(0, 12).forEach(item => {
+                const badge = document.createElement('div');
+                badge.className = 'history-item';
+                badge.innerHTML = `${item.type === 'recall' ? '🔄' : '📌'} ${item.number}号 <span class="recall-icon">🔁重叫</span>`;
+                badge.onclick = () => {
+                    if (currentNumber !== null && currentNumber !== item.number && !missedNumbers.includes(currentNumber)) {
+                        missedNumbers.push(currentNumber);
+                    }
+                    const idx = missedNumbers.indexOf(item.number);
+                    if (idx !== -1) missedNumbers.splice(idx, 1);
+                    currentNumber = item.number;
+                    addToHistory(item.number, 'recall');
+                    updateUI();
+                    speakNumber(item.number, true);
+                };
+                historyListDiv.appendChild(badge);
+            });
+        }
+        
+        activateSpeechBtn.onclick = activateSpeech;
+        callNormalBtn.onclick = () => { if(speechActivated) callNextNormal(); else showMessage('请先激活语音', true); };
+        callMissBtn.onclick = () => { if(speechActivated) callMissedFirst(); else showMessage('请先激活语音', true); };
+        repeatBtn.onclick = () => { if(speechActivated) repeatCurrent(); else showMessage('请先激活语音', true); };
+        resetBtn.onclick = resetSystem;
+        clearHistoryBtn.onclick = clearHistoryOnly;
+        
+        updateUI();
+    })();
+</script>
+</body>
+</html>
